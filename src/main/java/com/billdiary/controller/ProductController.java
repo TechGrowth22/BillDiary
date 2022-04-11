@@ -2,6 +2,8 @@ package com.billdiary.controller;
 
 
 import com.billdiary.entity.Product;
+import com.billdiary.entity.Unit;
+import com.billdiary.model.ErrorResponse;
 import com.billdiary.service.ProductService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -61,8 +63,12 @@ public class ProductController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PostMapping
-    public Product createProduct(Product product){
-        return productService.createProduct(product);
+    public ResponseEntity<Product> createProduct(Product product){
+        Product createdProduct = productService.createProduct(product);
+        if (null != createdProduct){
+            return new ResponseEntity(createdProduct, HttpStatus.OK);
+        }
+        return new ResponseEntity(new ErrorResponse("100","Product Id or Name already exits"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ApiOperation(value = "Update Product in the System", response = Product.class, tags = "product-controller")
@@ -75,4 +81,17 @@ public class ProductController {
     public Product updateProduct(Product product){
         return productService.updateProduct(product);
     }
+
+    @ApiOperation(value = "Get all units in the System", response = Unit.class, tags = "product-controller")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success|OK"),
+            @ApiResponse(code = 401, message = "not authorized!"),
+            @ApiResponse(code = 403, message = "forbidden!!!"),
+            @ApiResponse(code = 404, message = "not found!!!") })
+    @GetMapping("/unit")
+    public List<Unit> getAllUnits(){
+        return productService.getAllUnits();
+    }
+
+
 }

@@ -2,10 +2,7 @@ package com.billdiary.entity;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "unit")
@@ -13,7 +10,7 @@ import javax.persistence.Table;
 public class Unit {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long unitId;
 
     private String unitName;
