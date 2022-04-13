@@ -2,6 +2,7 @@ package com.billdiary.controller;
 
 
 import com.billdiary.entity.Product;
+import com.billdiary.entity.Supplier;
 import com.billdiary.entity.Unit;
 import com.billdiary.model.ErrorResponse;
 import com.billdiary.service.ProductService;
@@ -34,7 +35,7 @@ public class ProductController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @GetMapping
-    public List<Product> getProduct(){
+    public List<Product> getProducts(){
         return productService.getProducts();
     }
 
@@ -78,8 +79,13 @@ public class ProductController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PutMapping
-    public Product updateProduct(Product product){
-        return productService.updateProduct(product);
+    public ResponseEntity<Product> updateProduct(Product product){
+        Product product1 = productService.updateProduct(product);
+        if (null != product1){
+            return new ResponseEntity(product1, HttpStatus.OK);
+        }else{
+            return new ResponseEntity(new ErrorResponse("101","Product does not exits or Your are assigning product code which already exists for other product"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @ApiOperation(value = "Get all units in the System", response = Unit.class, tags = "product-controller")

@@ -5,13 +5,16 @@ import com.billdiary.dao.ProductRepository;
 import com.billdiary.dao.UnitRepository;
 import com.billdiary.entity.Product;
 import com.billdiary.entity.Unit;
+import com.billdiary.service.utility.NullAwareBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -63,7 +66,22 @@ public class ProductService {
 
     public Product updateProduct(Product product) {
         logger.debug("Updating the product {}", product.toString());
-        return productRepository.saveAndFlush(product);
+        Product product1= null;
+        Optional<Product> optionalProduct = productRepository.findById(product.getProductId());
+
+        if(optionalProduct.isPresent()){
+            product1 = optionalProduct.get();
+        }else
+            return null;
+
+        Product product2 = productRepository.findByProductCode(product.getProductCode());
+        if(null != product2 && product2.getProductId() != product.getProductId())
+            return null;
+
+        if(null != product1)
+            NullAwareBeanUtils.copyNonNullProperties(product,product1,"");
+
+        return productRepository.saveAndFlush(product1);
     }
 
     public List<Unit> getAllUnits() {
