@@ -51,7 +51,6 @@ public class ProductService {
                 unit.setUnitId(0l);
         }
 
-
         List<Product> products = productRepository.findByproductCodeOrProductName(product.getProductCode(),product.getProductName());
         Product matchingObject = products.stream().
                 filter(p -> p.getProductCode().equals(product.getProductCode()) || p.getProductName().equals(product.getProductName())).
@@ -74,10 +73,23 @@ public class ProductService {
         }else
             return null;
 
-        Product product2 = productRepository.findByProductCode(product.getProductCode());
-        if(null != product2 && product2.getProductId() != product.getProductId())
-            return null;
+        if(null != product.getProductCode()){
+            Product product2 = productRepository.findByProductCode(product.getProductCode());
+            if(null != product2 && product2.getProductId() != product.getProductId())
+                return null;
+        }
 
+        if(null != product.getUnit()){
+            List<Unit> units = unitRepository.findByUnitIdOrUnitName(product.getUnit().getUnitId(),product.getUnit().getUnitName());
+            if(null != units && units.size()>0)
+                product.setUnit(units.get(0));
+            else{
+                Unit u = new Unit();
+                u.setUnitId(1l);
+                u.setUnitName("KG");
+                product.setUnit(u);
+            }
+        }
         if(null != product1)
             NullAwareBeanUtils.copyNonNullProperties(product,product1,"");
 
