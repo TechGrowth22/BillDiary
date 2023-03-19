@@ -1,12 +1,11 @@
 package com.billdiary.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.time.LocalDate;
+import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 @Table(name = "customer")
@@ -14,10 +13,17 @@ import java.time.LocalDate;
 public class Customer {
 
     @Id
-    @GeneratedValue
+    @SequenceGenerator(name = "pet_seq",
+            sequenceName = "pet_sequence",
+            initialValue = 1, allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_seq")
     private Long customerId;
     private String fullName;
     private String address;
     private String mobileNo;
-    private LocalDate birthdate;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date birthdate;
+    private Double balance;
+    private String status;
 }
