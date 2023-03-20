@@ -1,10 +1,13 @@
 package com.billdiary.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Timestamp;
+import java.util.*;
 
+import com.billdiary.config.AppConfig;
+import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.Constant;
+import com.billdiary.constant.ErrorConstants;
+import com.billdiary.exception.DatabaseException;
 import com.billdiary.service.utility.NullAwareBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,35 +28,42 @@ public class CustomerService {
     @Autowired
     CustomerRepository customerRepository;
 
+    @Autowired
+    AppConfig appConfig;
+
+    @Autowired
+    MessageConfig messageConfig;
+
     public List<Customer> getCustomers()
     {
         LOGGER.info("fetching Customers");
         return customerRepository.findAll();
     }
 
-    public boolean deleteCustomer(long id)
-    {
-        boolean customerDeleted=false;
-        LOGGER.info("Deleting the customer {}", id);
-        customerRepository.deleteById(id);
-        return true;
-    }
+
     public List<Customer> saveCustomers(List<Customer> customers)
     {
         LOGGER.info("Saving the customers {}", customers);
+        Long maxId = getMaxCustomerId();
+        customers.forEach(customer -> {
+            customer.setCustomerId(maxId+1);
+            customer.setModifiedAt(getCurrentTimeStamp());
+        });
         List<Customer>  updatedCustEntities = customerRepository.saveAll(customers);
         return updatedCustEntities;
     }
 
-    public Customer updateCustomer(Customer customer)
-    {
+    public Customer updateCustomer(Customer customer) throws DatabaseException {
         LOGGER.info("Entering in updateCustomer");
         Customer updateCustomer = null;
         Optional<Customer> existingCustomerOptional = customerRepository.findById(customer.getCustomerId());
         if(existingCustomerOptional.isPresent()){
             updateCustomer = existingCustomerOptional.get();
-            NullAwareBeanUtils.copyNonNullProperties(updateCustomer, customer);
+            NullAwareBeanUtils.copyNonNullProperties(customer, updateCustomer);
+            updateCustomer.setModifiedAt(getCurrentTimeStamp());
             customerRepository.save(updateCustomer);
+        }else{
+            throw new DatabaseException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
         }
         return updateCustomer;
     }
@@ -98,15 +108,46 @@ public class CustomerService {
         return custEntity;
     }
 
-    public Customer getCustomerById(Long custId) {
-        Customer cust = new Customer();
-        try {
-            Optional<Customer> custEntity=customerRepository.findById(custId);
-            if(custEntity.isPresent())
-                cust = custEntity.get();
-        }catch(Exception e) {
-            LOGGER.error("Exception Occured"+e);
+    public Customer getCustomerById(Long customerId) throws DatabaseException {
+        Customer cust = null;
+        Optional<Customer> custEntity=customerRepository.findById(customerId);
+        if(custEntity.isPresent()){
+            cust = custEntity.get();
+        }
+        else{
+            throw new DatabaseException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
         }
         return cust;
+    }
+
+    public boolean deleteCustomer(long customerId) throws DatabaseException {
+        if(isCustomerAlreadyExists(customerId)){
+            LOGGER.info("Deleting the customer {}", customerId);
+            customerRepository.deleteById(customerId);
+        }
+        return true;
+    }
+
+    private boolean isCustomerAlreadyExists(Long customerId) throws DatabaseException {
+        Optional<Customer> custEntity=customerRepository.findById(customerId);
+        if(custEntity.isPresent()){
+            return true;
+        }
+        else{
+            throw new DatabaseException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
+        }
+    }
+
+    private Long getMaxCustomerId(){
+        Long maxId = customerRepository.maxCustomerId();
+        if(maxId != null){
+            return maxId;
+        }else{
+           return appConfig.getStartingId();
+        }
+    }
+
+    private Timestamp getCurrentTimeStamp(){
+        return new Timestamp(new Date().getTime());
     }
 }

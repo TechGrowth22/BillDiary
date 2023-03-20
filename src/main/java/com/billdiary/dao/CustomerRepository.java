@@ -16,6 +16,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     public int updateCustomerBalance(@Param("customerId") Long customerId, @Param("balance") double balance);
 
     public Customer findByFullNameAndAddressAndMobileNo(String fullName,String address,String mobile_no);
+    @Query("SELECT MAX(customer.customerId) FROM Customer customer")
+    public Long maxCustomerId();
 
 
 }
