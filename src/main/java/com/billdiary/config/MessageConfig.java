@@ -20,4 +20,8 @@ public class MessageConfig {
     public String getMessage(String key, String... args) {
         return messageSource.getMessage(key, args, Locale.ENGLISH);
     }
+
+    public String getMessage(String key, Long... args) {
+        return messageSource.getMessage(key, args, Locale.ENGLISH);
+    }
 }
