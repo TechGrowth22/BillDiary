@@ -102,7 +102,7 @@ public class ProductController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PostMapping
-    public ResponseEntity<Product> createProducts(@RequestBody List<Product> products){
+    public ResponseEntity<RestResponse> createProducts(@RequestBody List<Product> products){
         try{
             RestResponse response = new RestResponse();
             response.setData(productService.saveProducts(products));

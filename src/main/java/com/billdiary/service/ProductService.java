@@ -52,10 +52,9 @@ public class ProductService {
 
     public Product getProductById(Long productId) throws DatabaseException {
         logger.debug("Getting product from repository productId {}", productId);
-        Product product = null;
-        Optional<Product> product1=productRepository.findById(productId);
-        if(product1.isPresent()){
-            return product1.get();
+        Optional<Product> product=productRepository.findById(productId);
+        if(product.isPresent()){
+            return product.get();
         }
          else{
             throw new DatabaseException(ErrorConstants.Err_Code_503, messageConfig.getMessage(ErrorConstants.Err_Code_503));
