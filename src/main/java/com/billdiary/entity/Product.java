@@ -13,13 +13,19 @@ public class Product {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long productId;
-    private Long productCode;
+    private String productCode;
     private String productName;
-    private String productType;
-    private BigDecimal sellPrice;
+    private String productDescription;
+    private BigDecimal purchasePrice;
+    private BigDecimal sellingPrice;
     private BigDecimal quantity;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "unit_id", referencedColumnName = "unitId")
     private Unit unit;
+
+    @ManyToOne
+    @JoinColumn(name="productCategoryId", nullable=true)
+    private ProductCategory productCategory;
+
 }

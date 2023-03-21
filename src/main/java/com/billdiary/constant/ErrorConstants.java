@@ -14,4 +14,6 @@ public class ErrorConstants {
     //Database
     public static final String Err_Code_501 = "ERR-CODE-501";
     public static final String Err_Code_502 = "ERR-CODE-502";
+    public static final String Err_Code_503 = "ERR-CODE-503";
+    public static final String Err_Code_504 = "ERR-CODE-504";
 }

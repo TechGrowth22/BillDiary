@@ -1,0 +1,34 @@
+
+Entities:
+
+User: stores information about the users of the GST software, such as name, email, and password.
+Business: stores information about the businesses registered under GST, such as name, GSTIN (Goods and Services Tax Identification Number), and address.
+Product Category: stores information about the different categories of products or services provided by the business, such as computer hardware, software, peripherals, etc. Each category is associated with a specific HSN code.
+Brand: stores information about the different brands of products sold by the business, such as Dell, HP, Lenovo, etc. Each brand is associated with a specific product category ID.
+Product: stores information about the individual products or services supplied by the businesses, such as name, description, price, discount, and HSN code. Each product is associated with a specific product category ID and brand ID.
+Invoice: stores information about the invoices raised by the businesses, such as invoice number, date, and amount. Each invoice is associated with a specific business ID.
+Invoice Item: stores information about the individual items sold on an invoice, such as the product ID, quantity, price, and discount.
+Payment: stores information about the payments made by the businesses towards their GST liability, such as payment date, amount, and mode of payment. Each payment is associated with a specific business ID.
+Relationships:
+
+A User can have multiple Businesses.
+A Business can have multiple Product Categories.
+A Product Category can have multiple Brands.
+A Brand can have multiple Products.
+An Invoice can have multiple Invoice Items.
+An Invoice Item is associated with one Product.
+A Product is associated with one Brand and one Product Category.
+An Invoice is associated with one Business.
+A Payment can be made towards one or more Invoices.
+A Business can make multiple Payments.
+Attributes:
+
+User: ID, name, email, password
+Business: ID, name, GSTIN, address
+Product Category: ID, name, HSN code, business ID
+Brand: ID, name, product category ID
+Product: ID, name, description, price, discount, product category ID, brand ID, HSN code
+Invoice: ID, invoice number, date, amount, business ID
+Invoice Item: ID, product ID, quantity, price, discount, invoice ID
+Payment: ID, payment date, amount, mode of payment, business ID
+The Brand table has been added to the data model to store information about the different brands of products sold by the business. Each brand is associated with a specific product category ID, allowing for more granular tracking of sales by brand and category. The Product entity has been updated to include a brand ID, which is associated with the Brand table.

@@ -16,4 +16,8 @@ public class MessageConfig {
     public String getMessage(String key) {
         return messageSource.getMessage(key,null, Locale.ENGLISH);
     }
+
+    public String getMessage(String key, String... args) {
+        return messageSource.getMessage(key, args, Locale.ENGLISH);
+    }
 }
