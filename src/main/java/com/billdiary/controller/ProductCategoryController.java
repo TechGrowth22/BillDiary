@@ -2,10 +2,8 @@ package com.billdiary.controller;
 
 import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.ApiConstants;
-import com.billdiary.constant.ErrorConstants;
+import com.billdiary.controller.utility.ResponseUtility;
 import com.billdiary.dto.ProductCategoryDto;
-import com.billdiary.exception.DatabaseException;
-import com.billdiary.exception.DatabaseRuntimeException;
 import com.billdiary.dto.RestResponse;
 import com.billdiary.service.ProductCategoryService;
 import io.swagger.annotations.ApiOperation;
@@ -30,6 +28,9 @@ public class ProductCategoryController {
     MessageConfig messageConfig;
 
     @Autowired
+    ResponseUtility responseUtility;
+
+    @Autowired
     ProductCategoryService productCategoryService;
 
     @ApiOperation(value = "Get list of Product Categories in the System ", response = RestResponse.class, tags = "product-category-controller")
@@ -48,17 +49,9 @@ public class ProductCategoryController {
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -77,17 +70,9 @@ public class ProductCategoryController {
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -104,17 +89,9 @@ public class ProductCategoryController {
             response.setData(productCategoryService.saveProductCategories(productCategorieDtos));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
-        }catch (DatabaseRuntimeException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -132,17 +109,9 @@ public class ProductCategoryController {
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -159,17 +128,9 @@ public class ProductCategoryController {
             response.setData(productCategoryService.deleteProductCategory(productCategoryId));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
