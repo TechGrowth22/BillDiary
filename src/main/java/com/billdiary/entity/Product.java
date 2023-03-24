@@ -28,4 +28,8 @@ public class Product {
     @JoinColumn(name="productCategoryId", nullable=true)
     private ProductCategory productCategory;
 
+    @ManyToOne
+    @JoinColumn(name="productBrandId", nullable=true)
+    private ProductBrand productBrand;
+
 }

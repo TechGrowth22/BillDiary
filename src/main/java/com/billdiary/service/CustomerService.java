@@ -7,7 +7,10 @@ import com.billdiary.config.AppConfig;
 import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.Constant;
 import com.billdiary.constant.ErrorConstants;
+import com.billdiary.dto.CustomerDto;
 import com.billdiary.exception.DatabaseException;
+import com.billdiary.exception.DatabaseRuntimeException;
+import com.billdiary.mapper.CustomerMapper;
 import com.billdiary.service.utility.NullAwareBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,38 +37,57 @@ public class CustomerService {
     @Autowired
     MessageConfig messageConfig;
 
-    public List<Customer> getCustomers()
+    @Autowired
+    CustomerMapper customerMapper;
+
+    public List<CustomerDto> getCustomers()
     {
         LOGGER.info("fetching Customers");
-        return customerRepository.findAll();
+        return customerMapper.customerToCustomerDto(customerRepository.findAll());
     }
 
 
-    public List<Customer> saveCustomers(List<Customer> customers)
-    {
-        LOGGER.info("Saving the customers {}", customers);
-        Long maxId = getMaxCustomerId();
-        customers.forEach(customer -> {
-            customer.setCustomerId(maxId+1);
-            customer.setModifiedAt(getCurrentTimeStamp());
-        });
-        List<Customer>  updatedCustEntities = customerRepository.saveAll(customers);
-        return updatedCustEntities;
+    public List<CustomerDto> saveCustomers(List<CustomerDto> customerDtos) throws DatabaseException {
+        LOGGER.info("Saving the customers {}", customerDtos);
+        List<Customer>  updatedCustEntities = null;
+        List<CustomerDto>  updatedCustDtos = null;
+        try{
+            List<Customer> customers = customerMapper.customerDtoToCustomer(customerDtos);
+            Long maxId = getMaxCustomerId();
+            customers.forEach(customer -> {
+                customer.setCustomerId(maxId+1);
+                //customer.setModifiedAt(getCurrentTimeStamp());
+            });
+            updatedCustEntities = customerRepository.saveAll(customers);
+            updatedCustDtos = customerMapper.customerToCustomerDto(updatedCustEntities);
+
+        }catch(Exception e){
+            throw new DatabaseException(e.getMessage());
+        }
+
+        return updatedCustDtos;
     }
 
-    public Customer updateCustomer(Customer customer) throws DatabaseException {
+    public CustomerDto updateCustomer(CustomerDto customerDto) throws DatabaseException {
         LOGGER.info("Entering in updateCustomer");
         Customer updateCustomer = null;
-        Optional<Customer> existingCustomerOptional = customerRepository.findById(customer.getCustomerId());
-        if(existingCustomerOptional.isPresent()){
-            updateCustomer = existingCustomerOptional.get();
-            NullAwareBeanUtils.copyNonNullProperties(customer, updateCustomer);
-            updateCustomer.setModifiedAt(getCurrentTimeStamp());
-            customerRepository.save(updateCustomer);
-        }else{
-            throw new DatabaseException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
+        CustomerDto updateCustomerDto = null;
+        try {
+            Customer customerEntity = customerMapper.customerDtoToCustomer(customerDto);
+            Optional<Customer> existingCustomerOptional = customerRepository.findById(customerEntity.getCustomerId());
+            if (existingCustomerOptional.isPresent()) {
+                updateCustomer = existingCustomerOptional.get();
+                NullAwareBeanUtils.copyNonNullProperties(customerEntity, updateCustomer);
+                //updateCustomer.setModifiedAt(getCurrentTimeStamp());
+                customerEntity = customerRepository.save(updateCustomer);
+                updateCustomerDto = customerMapper.customerToCustomerDto(customerEntity);
+            } else {
+                throw new DatabaseException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
+            }
+        }catch(Exception e){
+            throw new DatabaseException(e.getMessage());
         }
-        return updateCustomer;
+        return updateCustomerDto;
     }
 
     /**
@@ -75,12 +97,12 @@ public class CustomerService {
         long count=customerRepository.count();
         return count;
     }
-    public List<Customer> getCustomers(int index,int rowsPerPage) {
+    public List<CustomerDto> getCustomers(int index, int rowsPerPage) {
         LOGGER.info("Entering in getCustomers");
         List<Customer> customerList=new ArrayList<>();
         Page<Customer> customerEntities = customerRepository.findAll(PageRequest.of(index, rowsPerPage, Sort.Direction.ASC, "status"));
         LOGGER.info("Exiting in getCustomers");
-        return customerEntities.toList();
+        return customerMapper.customerToCustomerDto(customerEntities.toList());
     }
 
     public void updateCustomerBalance(Long customerId, Double amount) {
@@ -103,21 +125,20 @@ public class CustomerService {
         return custEntity;
     }
 
-    public Customer addNewCustomerByInvoive(Customer customer) {
-        Customer custEntity = customerRepository.saveAndFlush(customer);
-        return custEntity;
-    }
 
-    public Customer getCustomerById(Long customerId) throws DatabaseException {
+    public CustomerDto getCustomerById(Long customerId) throws DatabaseException {
         Customer cust = null;
+        CustomerDto customerDto = null;
+
         Optional<Customer> custEntity=customerRepository.findById(customerId);
         if(custEntity.isPresent()){
             cust = custEntity.get();
+            customerDto = customerMapper.customerToCustomerDto(cust);
         }
         else{
-            throw new DatabaseException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
+            throw new DatabaseRuntimeException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
         }
-        return cust;
+        return customerDto;
     }
 
     public boolean deleteCustomer(long customerId) throws DatabaseException {

@@ -3,9 +3,10 @@ package com.billdiary.controller;
 import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.ApiConstants;
 import com.billdiary.constant.ErrorConstants;
+import com.billdiary.dto.UnitDto;
 import com.billdiary.entity.Unit;
 import com.billdiary.exception.DatabaseException;
-import com.billdiary.model.RestResponse;
+import com.billdiary.dto.RestResponse;
 import com.billdiary.service.UnitService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -61,7 +62,7 @@ public class UnitController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @GetMapping("/{unitId}")
-    public ResponseEntity<Unit> getUnitById(@PathVariable("unitId") Long unitId){
+    public ResponseEntity<UnitDto> getUnitById(@PathVariable("unitId") Long unitId){
         logger.debug("Getting Unit unitId {}", unitId);
         try{
             RestResponse response = new RestResponse();
@@ -90,13 +91,20 @@ public class UnitController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PostMapping
-    public ResponseEntity<RestResponse> createUnit(@RequestBody List<Unit> units){
+    public ResponseEntity<RestResponse> createUnit(@RequestBody List<UnitDto> unitDtos){
         try{
 
             RestResponse response = new RestResponse();
-            response.setData(unitService.saveUnits(units));
+            response.setData(unitService.saveUnits(unitDtos));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
+        }catch (DatabaseException e) {
+            logger.error(e.getMessage(),e);
+            RestResponse response = new RestResponse();
+            response.setStatus(ApiConstants.STATUS_FAILED);
+            response.setErrorCode(e.getErrorCode());
+            response.setErrorMessage(e.getErrorMessage());
+            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
             RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
@@ -111,10 +119,10 @@ public class UnitController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PutMapping
-    public ResponseEntity<Unit> updateUnit(@RequestBody Unit unit){
+    public ResponseEntity<UnitDto> updateUnit(@RequestBody UnitDto unitDto){
         try {
             RestResponse response = new RestResponse();
-            response.setData(unitService.updateUnit(unit));
+            response.setData(unitService.updateUnit(unitDto));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
@@ -139,7 +147,7 @@ public class UnitController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @DeleteMapping("/{unitId}")
-    public ResponseEntity<Unit> deleteUnit(@PathVariable("unitId") Long unitId){
+    public ResponseEntity<UnitDto> deleteUnit(@PathVariable("unitId") Long unitId){
         try{
             RestResponse response = new RestResponse();
             response.setData(unitService.deleteUnit(unitId));

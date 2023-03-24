@@ -3,10 +3,10 @@ package com.billdiary.controller;
 import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.ApiConstants;
 import com.billdiary.constant.ErrorConstants;
-import com.billdiary.entity.ProductCategory;
+import com.billdiary.dto.ProductCategoryDto;
 import com.billdiary.exception.DatabaseException;
 import com.billdiary.exception.DatabaseRuntimeException;
-import com.billdiary.model.RestResponse;
+import com.billdiary.dto.RestResponse;
 import com.billdiary.service.ProductCategoryService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -98,10 +98,10 @@ public class ProductCategoryController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PostMapping
-    public ResponseEntity<RestResponse> createProductCategories(@RequestBody List<ProductCategory> productCategories){
+    public ResponseEntity<RestResponse> createProductCategories(@RequestBody List<ProductCategoryDto> productCategorieDtos){
         try{
             RestResponse response = new RestResponse();
-            response.setData(productCategoryService.saveProductCategories(productCategories));
+            response.setData(productCategoryService.saveProductCategories(productCategorieDtos));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
         }catch (DatabaseRuntimeException e) {
@@ -125,10 +125,10 @@ public class ProductCategoryController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PutMapping
-    public ResponseEntity<RestResponse> updateProductCategory(ProductCategory productCategory){
+    public ResponseEntity<RestResponse> updateProductCategory(ProductCategoryDto productCategoryDto){
         try{
             RestResponse response = new RestResponse();
-            response.setData(productCategoryService.updateProductCategory(productCategory));
+            response.setData(productCategoryService.updateProductCategory(productCategoryDto));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
@@ -153,7 +153,7 @@ public class ProductCategoryController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @DeleteMapping("/{productCategoryId}")
-    public ResponseEntity<ProductCategory> deleteProductCategory(@PathVariable("productCategoryId") Long productCategoryId){
+    public ResponseEntity<ProductCategoryDto> deleteProductCategory(@PathVariable("productCategoryId") Long productCategoryId){
         try{
             RestResponse response = new RestResponse();
             response.setData(productCategoryService.deleteProductCategory(productCategoryId));

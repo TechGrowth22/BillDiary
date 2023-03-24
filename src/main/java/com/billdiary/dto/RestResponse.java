@@ -1,4 +1,4 @@
-package com.billdiary.model;
+package com.billdiary.dto;
 
 import com.billdiary.constant.ApiConstants;
 import lombok.Data;

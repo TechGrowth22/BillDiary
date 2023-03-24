@@ -1,11 +1,9 @@
 package com.billdiary.controller;
 
 
-import com.billdiary.entity.Product;
 import com.billdiary.entity.Supplier;
-import com.billdiary.model.ErrorResponse;
+import com.billdiary.dto.ErrorResponse;
 import com.billdiary.service.SupplierService;
-import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;

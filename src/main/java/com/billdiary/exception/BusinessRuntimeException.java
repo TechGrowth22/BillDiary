@@ -4,18 +4,19 @@ import com.billdiary.constant.ErrorConstants;
 import lombok.Getter;
 
 @Getter
-public class DatabaseException extends  Exception{
+public class BusinessRuntimeException extends RuntimeException{
+
 
     private final String errorCode;
     private final String errorMessage;
 
-    public DatabaseException(String errorMessage){
+    public BusinessRuntimeException(String errorMessage){
         super(errorMessage);
         this.errorCode  = ErrorConstants.Err_Code_501;
         this.errorMessage = errorMessage;
     }
 
-    public DatabaseException(String errorCode, String errorMessage){
+    public BusinessRuntimeException(String errorCode, String errorMessage){
         super(errorMessage);
         this.errorCode  = errorCode;
         this.errorMessage = errorMessage;

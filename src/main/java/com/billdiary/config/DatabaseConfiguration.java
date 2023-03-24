@@ -3,7 +3,6 @@ package com.billdiary.config;
 
 import com.billdiary.dao.UnitRepository;
 import com.billdiary.entity.Unit;
-import com.billdiary.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

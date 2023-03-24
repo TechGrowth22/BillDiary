@@ -3,9 +3,11 @@ package com.billdiary.controller;
 import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.ApiConstants;
 import com.billdiary.constant.ErrorConstants;
+import com.billdiary.controller.utility.ResponseUtility;
+import com.billdiary.dto.CustomerDto;
 import com.billdiary.entity.Customer;
 import com.billdiary.exception.DatabaseException;
-import com.billdiary.model.RestResponse;
+import com.billdiary.dto.RestResponse;
 import com.billdiary.service.CustomerService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -23,6 +25,9 @@ public class CustomerController {
 
     @Autowired
     CustomerService customerService;
+
+    @Autowired
+    ResponseUtility responseUtility;
 
     @Autowired
     MessageConfig messageConfig;
@@ -45,8 +50,7 @@ public class CustomerController {
 
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -57,7 +61,7 @@ public class CustomerController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @GetMapping("/{customerId}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable("customerId") Long customerId){
+    public ResponseEntity<CustomerDto> getCustomerById(@PathVariable("customerId") Long customerId){
         logger.debug("Getting Customer customerId {}", customerId);
         try{
             RestResponse response = new RestResponse();
@@ -65,17 +69,9 @@ public class CustomerController {
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -86,7 +82,7 @@ public class CustomerController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PostMapping
-    public ResponseEntity<RestResponse> createCustomer(@RequestBody List<Customer> customers){
+    public ResponseEntity<RestResponse> createCustomer(@RequestBody List<CustomerDto> customers){
         try{
 
             RestResponse response = new RestResponse();
@@ -95,8 +91,7 @@ public class CustomerController {
             return new ResponseEntity(response, HttpStatus.OK);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -107,24 +102,15 @@ public class CustomerController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PutMapping
-    public ResponseEntity<Customer> updateCustomer(@RequestBody Customer Customer){
+    public ResponseEntity<CustomerDto> updateCustomer(@RequestBody CustomerDto customerDto){
         try {
             RestResponse response = new RestResponse();
-            response.setData(customerService.updateCustomer(Customer));
+            response.setData(customerService.updateCustomer(customerDto));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
-
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
@@ -135,23 +121,15 @@ public class CustomerController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @DeleteMapping("/{customerId}")
-    public ResponseEntity<Customer> deleteCustomer(@PathVariable("customerId") Long customerId){
+    public ResponseEntity<CustomerDto> deleteCustomer(@PathVariable("customerId") Long customerId){
         try{
             RestResponse response = new RestResponse();
             response.setData(customerService.deleteCustomer(customerId));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
-        }catch (DatabaseException e) {
-            logger.error(e.getMessage(),e);
-            RestResponse response = new RestResponse();
-            response.setStatus(ApiConstants.STATUS_FAILED);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getErrorMessage());
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }catch(Exception e){
             logger.error(e.getMessage(), e);
-            RestResponse response = new RestResponse(ErrorConstants.Err_Code_101, messageConfig.getMessage(ErrorConstants.Err_Code_101));
-            return new ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return responseUtility.handleExceptionResponse(e);
         }
     }
 
