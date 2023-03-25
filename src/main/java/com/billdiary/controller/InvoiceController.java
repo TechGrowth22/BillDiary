@@ -2,6 +2,7 @@ package com.billdiary.controller;
 
 import com.billdiary.constant.ApiConstants;
 import com.billdiary.controller.utility.ResponseUtility;
+import com.billdiary.dto.InvoiceDto;
 import com.billdiary.entity.Invoice;
 import com.billdiary.exception.DatabaseException;
 import com.billdiary.dto.RestResponse;
@@ -56,7 +57,7 @@ public class InvoiceController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @GetMapping("/{invoiceId}")
-    public ResponseEntity<Invoice> getInvoiceById(@PathVariable("invoiceId") Long invoiceId){
+    public ResponseEntity<InvoiceDto> getInvoiceById(@PathVariable("invoiceId") Long invoiceId){
         logger.debug("Getting Invoice invoiceId {}", invoiceId);
         try{
             RestResponse response = new RestResponse();
@@ -77,11 +78,11 @@ public class InvoiceController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PostMapping
-    public ResponseEntity<RestResponse> createInvoice(@RequestBody Invoice invoice){
+    public ResponseEntity<RestResponse> createInvoice(@RequestBody InvoiceDto invoiceDto){
         try{
 
             RestResponse response = new RestResponse();
-            response.setData(invoiceService.saveInvoices(invoice));
+            response.setData(invoiceService.saveInvoices(invoiceDto));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
         }catch(Exception e){
@@ -99,10 +100,10 @@ public class InvoiceController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PutMapping
-    public ResponseEntity<Invoice> updateInvoice(@RequestBody Invoice Invoice){
+    public ResponseEntity<InvoiceDto> updateInvoice(@RequestBody Invoice invoice){
         try {
             RestResponse response = new RestResponse();
-            response.setData(invoiceService.updateInvoice(Invoice));
+            response.setData(invoiceService.updateInvoice(invoice));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 
@@ -126,7 +127,7 @@ public class InvoiceController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @DeleteMapping("/{invoiceId}")
-    public ResponseEntity<Invoice> deleteInvoice(@PathVariable("invoiceId") Long invoiceId){
+    public ResponseEntity<InvoiceDto> deleteInvoice(@PathVariable("invoiceId") Long invoiceId){
         try{
             RestResponse response = new RestResponse();
             response.setData(invoiceService.deleteInvoice(invoiceId));

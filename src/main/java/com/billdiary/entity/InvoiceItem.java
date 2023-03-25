@@ -2,20 +2,23 @@ package com.billdiary.entity;
 
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "invoice_product")
-@Data
+@Getter
+@Setter
 public class InvoiceItem {
 
     @Id
     @GeneratedValue
     private Long invoiceItemId;
 
-    @ManyToOne
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="invoiceId", nullable=false)
     private Invoice invoice;
 
@@ -23,8 +26,8 @@ public class InvoiceItem {
     @JoinColumn(name="productId", nullable=false)
     private Product product;
 
-    BigDecimal quantity;
-    BigDecimal price;
-    BigDecimal discount;
+    private BigDecimal quantity;
+    private BigDecimal price;
+    private BigDecimal discount;
 
 }

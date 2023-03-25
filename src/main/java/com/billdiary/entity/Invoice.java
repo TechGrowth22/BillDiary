@@ -28,7 +28,7 @@ public class Invoice {
 /*    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Timestamp modifiedAt;*/
 
-    @OneToMany(mappedBy = "invoice")
+    @OneToMany(fetch=FetchType.LAZY, cascade = CascadeType.DETACH, mappedBy = "invoice")
     private Set<InvoiceItem> invoiceItems;
 
 }

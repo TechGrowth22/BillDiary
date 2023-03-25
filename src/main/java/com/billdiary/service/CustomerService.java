@@ -141,6 +141,17 @@ public class CustomerService {
         return customerDto;
     }
 
+    public Customer getCustomerEntityById(Long customerId) throws DatabaseException {
+        Customer cust = null;
+        Optional<Customer> custEntity=customerRepository.findById(customerId);
+        if(custEntity.isPresent()){
+            cust = custEntity.get();
+        }
+        else{
+            throw new DatabaseRuntimeException(ErrorConstants.Err_Code_502, messageConfig.getMessage(ErrorConstants.Err_Code_502));
+        }
+        return cust;
+    }
     public boolean deleteCustomer(long customerId) throws DatabaseException {
         if(isCustomerAlreadyExists(customerId)){
             LOGGER.info("Deleting the customer {}", customerId);
