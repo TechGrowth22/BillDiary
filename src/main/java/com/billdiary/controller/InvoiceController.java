@@ -100,10 +100,10 @@ public class InvoiceController {
             @ApiResponse(code = 403, message = "forbidden!!!"),
             @ApiResponse(code = 404, message = "not found!!!") })
     @PutMapping
-    public ResponseEntity<InvoiceDto> updateInvoice(@RequestBody Invoice invoice){
+    public ResponseEntity<InvoiceDto> updateInvoice(@RequestBody InvoiceDto invoiceDto){
         try {
             RestResponse response = new RestResponse();
-            response.setData(invoiceService.updateInvoice(invoice));
+            response.setData(invoiceService.updateInvoice(invoiceDto));
             response.setStatus(ApiConstants.STATUS_OK);
             return new ResponseEntity(response, HttpStatus.OK);
 

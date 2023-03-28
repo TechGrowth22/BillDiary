@@ -6,19 +6,18 @@ import com.billdiary.config.MessageConfig;
 import com.billdiary.constant.ErrorConstants;
 import com.billdiary.dao.InvoiceItemRepository;
 import com.billdiary.dao.InvoiceRepository;
-import com.billdiary.dto.CustomerDto;
 import com.billdiary.dto.InvoiceDto;
 import com.billdiary.dto.InvoiceItemDto;
 import com.billdiary.entity.Customer;
 import com.billdiary.entity.Invoice;
 import com.billdiary.entity.InvoiceItem;
 import com.billdiary.entity.Product;
+import com.billdiary.entity.comparators.InvoiceItemComparator;
 import com.billdiary.exception.BusinessRuntimeException;
 import com.billdiary.exception.DatabaseException;
 import com.billdiary.mapper.CustomerMapper;
 import com.billdiary.mapper.InvoiceItemMapper;
 import com.billdiary.mapper.InvoiceMapper;
-import com.billdiary.service.utility.NullAwareBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class InvoiceService {
@@ -75,30 +73,20 @@ public class InvoiceService {
         LOGGER.info("Saving the Invoice {}", invoiceDto);
         Invoice invoice = null;
         try{
-            invoice = invoiceMapper.invoiceDtoToInvoice(invoiceDto);
-            Customer customer = customerService.getCustomerEntityById(invoiceDto.getCustomerId());
-            invoice.setCustomer(customer);
-            invoice.setInvoiceItems(null);
-            invoice.setInvoiceId(getMaxInvoiceId()+1);
-            invoice = invoiceRepository.save(invoice);
+            // Save Invoice With Empty InvoiceItems
+            invoice = saveInvoiceWithEmptyInvoiceItems(invoiceDto);
 
-            Set<InvoiceItemDto> invoiceItemDtos = invoiceDto.getInvoiceItemDtos();
-            Set<InvoiceItem> invoiceItems = new HashSet<>();
-            Invoice finalInvoice = invoice;
-            invoiceItemDtos.forEach(invoiceItemDto -> {
-                InvoiceItem invoiceItem = invoiceItemMapper.invoiceItemDtoToInvoiceItem(invoiceItemDto);
-                Product product = new Product();
-                product.setProductId(invoiceItemDto.getProductId());
-                invoiceItem.setProduct(product);
-                invoiceItem.setInvoice(finalInvoice);
-                invoiceItems.add(invoiceItem);
-            });
-
-            List<InvoiceItem> updatedInvoiceItems= invoiceItemRepository.saveAll(invoiceItems);
+            // Save invoice items into invoice
+            List<InvoiceItem> updatedInvoiceItems = saveInvoiceItems(invoiceDto.getInvoiceItemDtos(),invoice);
             invoice.setInvoiceItems(new HashSet<>(updatedInvoiceItems));
+
+            // update the invoice with Invoice Items
             invoice = invoiceRepository.save(invoice);
+
+            // Create a InvoiceDto by updatedInvoice
             invoiceDto = invoiceMapper.invoiceToInvoiceDto(invoice);
             invoiceDto.setInvoiceItemDtos(new HashSet<>(invoiceItemMapper.invoiceItemToInvoiceItemDto(updatedInvoiceItems)));
+            
         }catch(BusinessRuntimeException be){
            throw be;
         } catch(Exception e){
@@ -107,35 +95,83 @@ public class InvoiceService {
         return invoiceDto;
     }
 
-    private Invoice getInvoiceOfEmptyInvoiceItems(Invoice invoice) throws DatabaseException {
-        Invoice emptyInvoice = new Invoice();
-        emptyInvoice.setInvoiceId(getMaxInvoiceId()+1);
-        emptyInvoice.setInvoiceDate(invoice.getInvoiceDate());
-        emptyInvoice.setTotalAmount(invoice.getTotalAmount());
-        if(null == invoice.getCustomer())
-            throw new BusinessRuntimeException(ErrorConstants.Err_Code_521, messageConfig.getMessage(ErrorConstants.Err_Code_521));
-        CustomerDto customerDto = customerService.getCustomerById(invoice.getCustomer().getCustomerId());
-        emptyInvoice.setCustomer(customerMapper.customerDtoToCustomer(customerDto));
-        return emptyInvoice;
-    }
-
-    public InvoiceDto updateInvoice(Invoice invoice) throws DatabaseException {
+    public InvoiceDto updateInvoice(InvoiceDto invoiceDto) throws DatabaseException {
         LOGGER.info("Entering in updateInvoice");
-        Invoice updateInvoice = null;
+        Invoice updatedInvoice = null;
         try {
+            Invoice invoice = invoiceMapper.invoiceDtoToInvoice(invoiceDto);
             Optional<Invoice> existingInvoiceOptional = invoiceRepository.findById(invoice.getInvoiceId());
             if (existingInvoiceOptional.isPresent()) {
-                updateInvoice = existingInvoiceOptional.get();
-                NullAwareBeanUtils.copyNonNullProperties(invoice, updateInvoice);
-                //updateInvoice.setModifiedAt(getCurrentTimeStamp());
-                invoiceRepository.save(updateInvoice);
+                updatedInvoice = existingInvoiceOptional.get();
+
+                // Get InvoiceItems From InvoiceItemDtos
+                Set<InvoiceItem> invoiceItems = getInvoiceItemsFromInvoiceItemDtos(invoiceDto.getInvoiceItemDtos(), updatedInvoice);
+
+                // Delete al the removed Invoice Items from invoice in the system
+                List<InvoiceItem> removedInvoiceItems = getRemovedInvoiceItemsFromInvoice(updatedInvoice, invoiceItems);
+                invoiceItemRepository.deleteAll(removedInvoiceItems);
+
+
+                // Set updated invoiceItems and Customer
+                List<InvoiceItem> updatedInvoiceItems= invoiceItemRepository.saveAll(invoiceItems);
+                updatedInvoice.setInvoiceItems(new HashSet<>(updatedInvoiceItems));
+                Customer customer = customerService.getCustomerEntityById(invoiceDto.getCustomerId());
+                invoice.setCustomer(customer);
+
+                // update the other parameters
+                updatedInvoice.setInvoiceDate(invoice.getInvoiceDate());
+                updatedInvoice.setTotalAmount(invoice.getTotalAmount());
+                updatedInvoice = invoiceRepository.save(updatedInvoice);
+
             } else {
                 throw new DatabaseException(ErrorConstants.Err_Code_520, messageConfig.getMessage(ErrorConstants.Err_Code_520, invoice.getInvoiceId()));
             }
         }catch(Exception e){
             throw new DatabaseException(e.getMessage());
         }
-        return invoiceMapper.invoiceToInvoiceDto(updateInvoice);
+        return invoiceMapper.invoiceToInvoiceDto(updatedInvoice);
+    }
+
+    private List<InvoiceItem> saveInvoiceItems(Set<InvoiceItemDto> invoiceItemDtos, Invoice invoice) throws DatabaseException {
+        Invoice finalInvoice = invoice;
+        Set<InvoiceItem> invoiceItems = getInvoiceItemsFromInvoiceItemDtos(invoiceItemDtos,invoice);
+        List<InvoiceItem> updatedInvoiceItems = invoiceItemRepository.saveAll(invoiceItems);
+        return updatedInvoiceItems;
+    }
+
+    private Set<InvoiceItem> getInvoiceItemsFromInvoiceItemDtos(Set<InvoiceItemDto> invoiceItemDtos, Invoice updatedInvoice){
+        Set<InvoiceItem> invoiceItems = new HashSet<>();
+        Invoice finalInvoice = updatedInvoice;
+        invoiceItemDtos.forEach(invoiceItemDto -> {
+            InvoiceItem invoiceItem = invoiceItemMapper.invoiceItemDtoToInvoiceItem(invoiceItemDto);
+            Product product = new Product();
+            product.setProductId(invoiceItemDto.getProductId());
+            invoiceItem.setProduct(product);
+            invoiceItem.setInvoice(finalInvoice);
+            invoiceItems.add(invoiceItem);
+        });
+        return invoiceItems;
+    }
+
+    private List<InvoiceItem> getRemovedInvoiceItemsFromInvoice(Invoice updatedInvoice, Set<InvoiceItem> invoiceItems){
+
+        // Convert both collections to Sets using the same comparator
+        Set<InvoiceItem> set1 = new TreeSet<>(new InvoiceItemComparator());
+        set1.addAll(updatedInvoice.getInvoiceItems());
+        Set<InvoiceItem> set2 = new TreeSet<>(new InvoiceItemComparator());
+        set2.addAll(invoiceItems);
+        set1.removeAll(set2);
+        return new ArrayList<>(set1);
+    }
+
+    private Invoice saveInvoiceWithEmptyInvoiceItems(InvoiceDto invoiceDto) throws DatabaseException {
+        Invoice invoice = invoiceMapper.invoiceDtoToInvoice(invoiceDto);
+        Customer customer = customerService.getCustomerEntityById(invoiceDto.getCustomerId());
+        invoice.setCustomer(customer);
+        invoice.setInvoiceItems(null);
+        invoice.setInvoiceId(getMaxInvoiceId()+1);
+        invoice = invoiceRepository.save(invoice);
+        return invoice;
     }
 
     /**
